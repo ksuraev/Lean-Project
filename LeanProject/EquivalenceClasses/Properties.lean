@@ -25,11 +25,11 @@ notation:100 "[" a "]_" R:100 => EquivClass R a
 
 -- Property 1: Every element belongs to its own equivalence class
 -- We need to show that `a` is in the set {y : A | R y a} as in, that R a a holds which the h_reflexive assumption gives us
-lemma EquivalenceClass_Property1 {A : Type} (R : BinRel A) (h_reflexive : ∀ x : A, R x x) (a : A) : a ∈ [a]_R := by
+lemma Property1 {A : Type} (R : BinRel A) (h_reflexive : ∀ x : A, R x x) (a : A) : a ∈ [a]_R := by
   exact h_reflexive a
 
 -- Property 2: ∀a, b ∈ S, aRb if and only if [a] = [b]
-lemma EquivalenceClass_Property2 {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
+lemma Property2 {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
   have h_refl := h_equiv.1
   have h_symm := h_equiv.2.1
   have h_trans := h_equiv.2.2
@@ -47,7 +47,7 @@ lemma EquivalenceClass_Property2 {A : Type} (R : BinRel A) (h_equiv : EquivRel R
   exact h_eq_classes ▸ h_refl a -- ▸ operator is used for substitution and rewrites goal using equality h_eq_classes
 
 -- Alternative proof using `rw` tactic
-lemma EquivalenceClass_Property2' {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
+lemma Property2' {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
   unfold EquivClass
   have h_refl := h_equiv.1
   have h_symm := h_equiv.2.1
@@ -69,7 +69,7 @@ lemma EquivalenceClass_Property2' {A : Type} (R : BinRel A) (h_equiv : EquivRel 
     exact h_refl a }
 
 -- Alternative proof using lambda functions
-lemma EquivalenceClass_Property2'' {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
+lemma Property2'' {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
   unfold EquivClass
   have h_refl := h_equiv.1
   have h_symm := h_equiv.2.1
@@ -89,14 +89,14 @@ lemma EquivalenceClass_Property2'' {A : Type} (R : BinRel A) (h_equiv : EquivRel
 
 
 -- Property 3: Any two equivalence classes are either equal or disjoint - ∀a, b ∈ S, [a] = [b] ∨ [a] ∩[b] = ∅
-lemma EquivalenceClass_Property3 {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : ([a]_R = [b]_R) ∨ ([a]_R ∩ [b]_R = ∅) := by
+lemma Property3 {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : ([a]_R = [b]_R) ∨ ([a]_R ∩ [b]_R = ∅) := by
   have h_refl := h_equiv.1
   have h_symm := h_equiv.2.1
   have h_trans := h_equiv.2.2
   by_cases h_aInb : a ∈ [b]_R
   { left
-    -- Use EquivalenceClass_Property2 to show that the equivalence classes are equal - .mp applies forward direction of ↔
-    exact (EquivalenceClass_Property2 R h_equiv a b).mp h_aInb}
+    -- Use Property2 to show that the equivalence classes are equal - .mp applies forward direction of ↔
+    exact (Property2 R h_equiv a b).mp h_aInb}
   { right
     apply Set.eq_empty_iff_forall_notMem.mpr -- Use the backwards direction of Set.eq_empty_iff_forall_notMem
     intro x
@@ -122,9 +122,9 @@ end EquivalenceClasses
 -/
 
 -- Rewriting property proofs using type class notation
-namespace ClassNotation
+namespace UsingClass
 
-class Equivalence (A : Type u) where
+class Equivalence (A : Type _) where
    R : A → A → Prop
    refl : Reflexive R
    symm : Symmetric R
@@ -132,16 +132,16 @@ class Equivalence (A : Type u) where
 
 local infix:50 " ~ " => Equivalence.R
 
-def EquivClass {A : Type} [Equivalence A] (x : A) : Set A :=
+def EquivClass {A : Type _} [Equivalence A] (x : A) : Set A :=
   {y : A | y ~ x}
 
 notation:100 "[" a "]_R" => EquivClass a
 
 -- rewrite using above notation and class
-lemma EquivalenceClass_Property1 {A : Type} [Equivalence A] (a : A) : a ∈ [a]_R := by
+lemma Property1 {A : Type _} [Equivalence A] (a : A) : a ∈ [a]_R := by
   exact Equivalence.refl a
 
-lemma EquivalenceClass_Property2 {A : Type} [Equivalence A] (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
+lemma Property2 {A : Type} [Equivalence A] (a b : A) : (a ∈ [b]_R) ↔ ([a]_R = [b]_R) := by
   constructor
   { intro h_aRb
     apply Set.ext
@@ -156,10 +156,10 @@ lemma EquivalenceClass_Property2 {A : Type} [Equivalence A] (a b : A) : (a ∈ [
     rw[← h_eq_classes]
     exact Equivalence.refl a }
 
-lemma EquivalenceClass_Property3 {A : Type} [Equivalence A] (a b : A) : ([a]_R = [b]_R) ∨ ([a]_R ∩ [b]_R = ∅) := by
+lemma Property3 {A : Type} [Equivalence A] (a b : A) : ([a]_R = [b]_R) ∨ ([a]_R ∩ [b]_R = ∅) := by
   by_cases h_aInb : a ∈ [b]_R
   { left
-    exact (EquivalenceClass_Property2 a b).mp h_aInb}
+    exact (Property2 a b).mp h_aInb}
   { right
     apply Set.eq_empty_iff_forall_notMem.mpr
     intro x
@@ -170,4 +170,50 @@ lemma EquivalenceClass_Property3 {A : Type} [Equivalence A] (a b : A) : ([a]_R =
     exact h_aInb h_aRb
   }
 
-end ClassNotation
+end UsingClass
+
+-- Rewriting property proofs using Mathlib's Setoid
+namespace UsingSetoid
+class Equivalence (A : Sort u) where
+   R : A → A → Prop
+   refl : Reflexive R
+   symm : Symmetric R
+   trans : Transitive R
+
+def EquivClass {α : Type _} (R : Setoid α) (a : α) : Set α :=
+  { x | R x a }
+
+notation:100 "[" a "]__" R:100 => EquivClass R a
+
+lemma Property1 {α : Type _} (R : Setoid α) (a : α) : a ∈ [a]__R := by
+  exact R.refl a
+
+lemma Property2 {α : Type _} (R : Setoid α) (a b : α) : (a ∈ [b]__R) ↔ ([a]__R = [b]__R) := by
+  constructor
+  { intro h_aRb
+    apply Set.ext
+    intro y
+    constructor
+    { intro h_yRa
+      exact R.trans h_yRa h_aRb }
+    { intro h_yRb
+      have h_bRa := R.symm h_aRb
+      exact R.trans h_yRb h_bRa } }
+  { intro h_eq_classes
+    rw[← h_eq_classes]
+    exact R.refl a }
+
+lemma Property3' {α : Type _} (R : Setoid α) (a b : α) : ([a]__R = [b]__R) ∨ ([a]__R ∩ [b]__R = ∅) := by
+  by_cases h_aInb : a ∈ [b]__R
+  { left
+    exact (Property2 R a b).mp h_aInb}
+  { right
+    apply Set.eq_empty_iff_forall_notMem.mpr
+    intro x
+    intro h_x_in_intersection
+    cases h_x_in_intersection with
+    | intro h_xIna h_xInb
+    have h_aRb := R.trans (R.symm h_xIna) h_xInb
+    exact h_aInb h_aRb
+  }
+end UsingSetoid
