@@ -4,3 +4,6 @@ import «LeanProject».Basic
 import «LeanProject».BasicRelations.Reflexive
 import «LeanProject».BasicRelations.Symmetric
 import «LeanProject».BasicRelations.Transitive
+
+import «LeanProject».EquivalenceClasses.Properties
+import «LeanProject».Partitions.Properties
