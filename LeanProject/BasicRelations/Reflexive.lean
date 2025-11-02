@@ -11,7 +11,7 @@ namespace ProvingReflexive
 -- Define relation R
 def R (a b : ℤ) : Prop := Even (a + b)
 
-theorem R_Reflexive : ∀ a : ℤ, R a a := by
+example : ∀ a : ℤ, R a a := by
   intro a
   unfold R
   ring_nf -- rewrite a + a to a * 2
@@ -23,13 +23,11 @@ end ProvingReflexive
 
 namespace DisprovingReflexive
 
-def R (m a b: ℤ) : Prop := a = m * b
-
 -- Different examples, different approaches
 example : ¬ (2 * 2 = 2 * 4) := by
   intro h
   rw [mul_comm] at h
-  have h_false : 4 = 8 := h -- Explicitly compute the values
+  have h_false : 4 = 8 := h
   contradiction
 
 example (a : ℤ) : a ≠ 0 → ¬ (a * 2 = a * 4) := by
@@ -45,7 +43,9 @@ example (a : ℤ) : a ≠ 0 → ¬ (a = 2 * a) := by
   exact (by decide : (1 : ℤ) ≠ (2 : ℤ)) h_contradiction
 
 -- Prove R is not reflexive
-theorem R_Not_Reflexive :  ∃ (m : ℤ) (a : ℤ), ¬ R m a a := by
+def R (m a b: ℤ) : Prop := a = m * b
+
+example : ∃ (m : ℤ) (a : ℤ), ¬ R m a a := by
   unfold R
   use 2,2 -- Choose m = 2 and a = 2
   intro h
