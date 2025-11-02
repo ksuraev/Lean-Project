@@ -2,7 +2,6 @@ import Mathlib
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
 
-
 -- Proving that a relation is transitive
 namespace ProvingTransitive
 
@@ -52,10 +51,9 @@ example : ¬ Odd (-2) := by
   intro h
   cases h with
   | intro k h_eq
-  -- Rearrange the equation -2 = 2 * k + 1
   have h_contra : 2 * k = -3 := by
     linarith
-  have h_mod : (-3) % 2 = 1 := by decide -- Compute the remainder of -3 divided by 2
+  have h_mod : (-3) % 2 = 1 := by decide
   have h_mod2 : (2 * k) % 2 = 0 := by
     simp
   rw [h_contra] at h_mod2
