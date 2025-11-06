@@ -23,8 +23,7 @@ notation:100 "[" a "]_" R:100 => EquivClass R a
 
 #check [a]_R
 
--- Property 1: Every element belongs to its own equivalence class
--- We need to show that `a` is in the set {y : A | R y a} as in, that R a a holds which the h_reflexive assumption gives us
+-- Property 1: Every element belongs to its own equivalence class - ∀a ∈ S, a ∈ [a]
 lemma Property1 {A : Type} (R : BinRel A) (h_reflexive : ∀ x : A, R x x) (a : A) : a ∈ [a]_R := by
   exact h_reflexive a
 
@@ -33,17 +32,17 @@ lemma Property2 {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a 
   have h_refl := h_equiv.1
   have h_symm := h_equiv.2.1
   have h_trans := h_equiv.2.2
-  constructor -- removes bidirectional implication and allows us to prove both directions separately
-  intro h_aRb -- assume aRb
-  apply Set.ext -- remove the set equality and turn into a function that takes an element y and returns a proposition
+  constructor -- removes bidirectional implication
+  intro h_aRb
+  apply Set.ext -- remove the set equality goal and replace it with membership goal
   intro y
   constructor
-  { intro h_yRa -- Assume R y a
+  { intro h_yRa
     exact h_trans h_yRa h_aRb } -- use transitivity to show R y b
-  { intro h_yRb -- Assume R y b
-    have h_bRa := h_symm h_aRb -- use symmetry to get R b a
+  { intro h_yRb
+    have h_bRa := h_symm h_aRb -- use symmetry to show R b a
     exact h_trans h_yRb (h_bRa) } -- use transitivity to show R y a
-  intro h_eq_classes -- assume [a]_R = [b]_R
+  intro h_eq_classes
   exact h_eq_classes ▸ h_refl a -- ▸ operator is used for substitution and rewrites goal using equality h_eq_classes
 
 -- Alternative proof using `rw` tactic
@@ -54,17 +53,17 @@ lemma Property2' {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (a
   have h_trans := h_equiv.2.2
   -- Forward direction
   constructor
-  { intro h_aRb -- Assume aRb
+  { intro h_aRb
     apply Set.ext
     intro y
     constructor
-    { intro h_yRa -- Assume yRa
-      exact h_trans h_yRa h_aRb } -- Use transitivity to show yRb
-    { intro h_yRb -- Assume yRb
-      have h_bRa := h_symm h_aRb -- Use symmetry to show bRa
-      exact h_trans h_yRb h_bRa } } -- Use transitivity to show yRa
+    { intro h_yRa
+      exact h_trans h_yRa h_aRb }
+    { intro h_yRb
+      have h_bRa := h_symm h_aRb
+      exact h_trans h_yRb h_bRa } }
   -- Backward direction
-  { intro h_eq_classes -- Assume [a]_R = [b]_R
+  { intro h_eq_classes
     rw[← h_eq_classes]
     exact h_refl a }
 
@@ -75,14 +74,12 @@ lemma Property2'' {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : (
   have h_symm := h_equiv.2.1
   have h_trans := h_equiv.2.2
   constructor
-  -- Forward direction: If a ∈ [b], then [a] = [b]
   { intro h_aRb
     apply Set.ext
     intro y
-    -- 1st Lambda function taking assumption h_yRa and returns transitive property on h_yRa and h_aRb to conclude R y b (proves if y ∈ [a], then y ∈ [b])
-    -- 2nd lambda func takes assumption yRb and returns transitive property on h_yRb and h_symm h_aRb (bRa) to conclude R y a (proves if y ∈ [b], then y ∈ [a])
+    -- 1st Lambda function taking assumption h_yRa and returns transitive property on h_yRa and h_aRb to conclude yRb (proves if y ∈ [a], then y ∈ [b])
+    -- 2nd lambda func takes assumption yRb and returns transitive property on h_yRb and h_symm h_aRb to conclude yRa (proves if y ∈ [b], then y ∈ [a])
     exact ⟨fun h_yRa => h_trans h_yRa h_aRb, fun h_yRb => h_trans h_yRb (h_symm h_aRb)⟩ }
-  -- Backward direction: If [a] = [b], then a ∈ [b]
   { intro h_eq_classes
     rw [← h_eq_classes]
     exact h_refl a }
@@ -95,17 +92,16 @@ lemma Property3 {A : Type} (R : BinRel A) (h_equiv : EquivRel R) (a b : A) : ([a
   have h_trans := h_equiv.2.2
   by_cases h_aInb : a ∈ [b]_R
   { left
-    -- Use Property2 to show that the equivalence classes are equal - .mp applies forward direction of ↔
+    -- Use Property2 to show equivalence classes are equal
     exact (Property2 R h_equiv a b).mp h_aInb}
   { right
-    apply Set.eq_empty_iff_forall_notMem.mpr -- Use the backwards direction of Set.eq_empty_iff_forall_notMem
+    apply Set.eq_empty_iff_forall_notMem.mpr
     intro x
-    -- If x is in the intersection, then x is in both equivalence classes, therefore by transitivity R a b holds
+    -- If x is in the intersection, then x is in both equivalence classes
     intro h_x_in_intersection
     cases h_x_in_intersection with
     | intro h_xIna h_xInb
     have h_aRb := h_trans (h_symm h_xIna) h_xInb
-    -- But this contradicts the assumption that a is not in the equivalence class of b
     exact h_aInb h_aRb
   }
 end EquivalenceClasses
@@ -173,17 +169,18 @@ lemma Property3 {A : Type} [Equivalence A] (a b : A) : ([a]_R = [b]_R) ∨ ([a]_
 end UsingClass
 
 -- Rewriting property proofs using Mathlib's Setoid
-namespace UsingSetoid
+namespace EqClasses_Setoid
+open UsingClass
 class Equivalence (A : Sort u) where
    R : A → A → Prop
    refl : Reflexive R
    symm : Symmetric R
    trans : Transitive R
 
-def EquivClass {α : Type _} (R : Setoid α) (a : α) : Set α :=
+def equiv_class {α : Type _} (R : Setoid α) (a : α) : Set α :=
   { x | R x a }
 
-notation:100 "[" a "]__" R:100 => EquivClass R a
+notation:100 "[" a "]__" R:100 => equiv_class R a
 
 lemma Property1 {α : Type _} (R : Setoid α) (a : α) : a ∈ [a]__R := by
   exact R.refl a
@@ -203,7 +200,7 @@ lemma Property2 {α : Type _} (R : Setoid α) (a b : α) : (a ∈ [b]__R) ↔ ([
     rw[← h_eq_classes]
     exact R.refl a }
 
-lemma Property3' {α : Type _} (R : Setoid α) (a b : α) : ([a]__R = [b]__R) ∨ ([a]__R ∩ [b]__R = ∅) := by
+lemma Property3 {α : Type _} (R : Setoid α) (a b : α) : ([a]__R = [b]__R) ∨ ([a]__R ∩ [b]__R = ∅) := by
   by_cases h_aInb : a ∈ [b]__R
   { left
     exact (Property2 R a b).mp h_aInb}
@@ -216,4 +213,4 @@ lemma Property3' {α : Type _} (R : Setoid α) (a b : α) : ([a]__R = [b]__R) �
     have h_aRb := R.trans (R.symm h_xIna) h_xInb
     exact h_aInb h_aRb
   }
-end UsingSetoid
+end EqClasses_Setoid
