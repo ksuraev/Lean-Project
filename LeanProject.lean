@@ -6,3 +6,4 @@ import «LeanProject».BasicRelations.Transitive
 
 import «LeanProject».EquivalenceClasses.Properties
 import «LeanProject».Partitions.Properties
+import «LeanProject».EquivalenceRelations.EqClasses_Partitions
