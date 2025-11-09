@@ -7,7 +7,6 @@ import Mathlib.Order.SetNotation
 import Mathlib.Data.Set.Disjoint
 import LeanProject.EquivalenceClasses.Properties
 
-
 namespace Partitions
 
 structure Partition (α : Type _) where
@@ -16,6 +15,21 @@ structure Partition (α : Type _) where
   disjoint_subsets : ∀ s₁ ∈ subsets, ∀ s₂ ∈ subsets, s₁ ≠ s₂ → Disjoint s₁ s₂
   union_eq_univ : Set.sUnion subsets = Set.univ
 
+-- Lemma to show that the intersection of two sets containing a common element is non-empty
+lemma intersection_nonempty {α : Type _} (s₁ s₂ : Set α) (x : α) (h : x ∈ s₁ ∩ s₂) :
+  (s₁ ∩ s₂).Nonempty := by
+  use x
+
+-- Lemma to show that if two subsets of a partition share an element, they must be equal
+lemma subsets_equal {α : Type _} (P : Partition α)
+    (s₁ s₂ : Set α) (hs₁ : s₁ ∈ P.subsets) (hs₂ : s₂ ∈ P.subsets) (x : α) (hx₁ : x ∈ s₁) (hx₂ : x ∈ s₂) : s₁ = s₂ := by
+    have h_inter : (s₁ ∩ s₂).Nonempty := intersection_nonempty s₁ s₂ x ⟨hx₁, hx₂⟩
+    rw[← Set.not_disjoint_iff_nonempty_inter] at h_inter
+    by_contra h_neq
+    have h_disjoint := P.disjoint_subsets s₁ hs₁ s₂ hs₂ h_neq
+    exact h_inter h_disjoint
+
+
 -- Using equivalence class properties from EqClasses_Setoid namespace
 open EqClasses_Setoid
 
@@ -23,6 +37,7 @@ open EqClasses_Setoid
 def eq_classes {α : Type _} (R : Setoid α) : Set (Set α) :=
   { s | ∃ a, s = equiv_class R a }
 
+-- Show that eq_classes form a partition
 lemma eq_classes_nonempty {α : Type _} (R : Setoid α) :
   ∀ s ∈ eq_classes R, s.Nonempty := by
   intro s hs
@@ -38,9 +53,9 @@ lemma eq_classes_disjoint {α : Type _} (R : Setoid α) :
   rcases h_nonempty with ⟨x, hx⟩
   rcases hs₁ with ⟨a, rfl⟩
   rcases hs₂ with ⟨b, rfl⟩
-  have hxa : x ∈ [a]__R := hx.left
-  have hxb : x ∈ [b]__R := hx.right
-  have hab : a ∈ [b]__R := R.trans (R.symm hxa) hxb
+  have hxa : x ∈ [a]_R := hx.left
+  have hxb : x ∈ [b]_R := hx.right
+  have hab : a ∈ [b]_R := R.trans (R.symm hxa) hxb
   have h_eq_classes := (EqClasses_Setoid.Property2 R a b).mp hab
   rw [h_eq_classes] at hne
   exact hne rfl
