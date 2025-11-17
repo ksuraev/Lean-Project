@@ -1,4 +1,3 @@
-import Mathlib
 import Init.Prelude
 import Init.Core
 import Mathlib.Data.Set.Basic
@@ -75,17 +74,27 @@ lemma eq_classes_union_eq_univ {α : Type _} (R : Setoid α) :
 
 theorem eq_classes_form_partition {α : Type _} (R : Setoid α) : ∃ P : Partition α, P.subsets = eq_classes R :=
   ⟨{ subsets := eq_classes R,
+      nonempty_subsets := eq_classes_nonempty R,
+      disjoint_subsets := eq_classes_disjoint R,
+      union_eq_univ := eq_classes_union_eq_univ R}, rfl⟩
 
-      nonempty_subsets := by
-        exact eq_classes_nonempty R,
 
-      disjoint_subsets := by
-        exact eq_classes_disjoint R,
+-- Rewrite eq_classes_form_partition to use subtype
+-- Explicitly construct the subtype
+def eq_classes_form_partition_sub {α : Type _} (R : Setoid α) : { P : Partition α // P.subsets = eq_classes R } :=
+    ⟨{ subsets := eq_classes R,
+       nonempty_subsets := eq_classes_nonempty R,
+       disjoint_subsets := eq_classes_disjoint R,
+       union_eq_univ := eq_classes_union_eq_univ R },
+     rfl⟩
 
-      union_eq_univ := by
-        exact eq_classes_union_eq_univ R
-    }, rfl⟩
 
+-- Alternate to using subtypes
+def def_eq_classes_form_partition {α : Type _} (R : α → α → Prop) (hR : Equivalence R) : Partition α :=
+{ subsets := eq_classes ⟨R, hR⟩,
+  nonempty_subsets := eq_classes_nonempty ⟨R, hR⟩,
+  disjoint_subsets := eq_classes_disjoint ⟨R, hR⟩,
+  union_eq_univ := eq_classes_union_eq_univ ⟨R, hR⟩ }
 end Partitions
 
 -- Alternate definition of partitions
