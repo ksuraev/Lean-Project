@@ -1,6 +1,7 @@
-import Mathlib
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
+import Mathlib.Algebra.Ring.Defs
+import Mathlib.Tactic.Ring
 
 #check Reflexive
 #check Symmetric
