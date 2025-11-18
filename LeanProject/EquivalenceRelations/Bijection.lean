@@ -10,6 +10,7 @@ namespace EqRelBijection
 open EqClasses_Setoid
 open InducedRelation
 open Partitions
+
 -- the // indicates a subtype, meaning we are considering only those relations R that are equivalence relations (All the elements of a type that satisfy a predicate.) https://leanprover-community.github.io/mathlib4_docs/Init/Notation.html#%C2%ABterm{_:_//_}%C2%BB
 
 -- Using the equiv structure to define a bijection between equivalence relations and partitions
@@ -23,6 +24,7 @@ lemma eq_of_mem
   s = t := by
   apply subsets_equal P s t hs ht a ha_s ha_t
 
+-- First draft
 def eqrel_partition_bijection (X : Type _) : { R : X → X → Prop // Equivalence R } ≃ Partition X :=
 {
   -- Define the forward function from equivalence relations to partitions
@@ -175,9 +177,7 @@ theorem GF_eq_id (S : Setoid X) : G (F S) = S := by
     have hP_eq : P.subsets = eq_classes S := (eq_classes_form_partition_sub ⟨R, hR⟩).property
     rw [hP_eq] at hsP -- s ∈ eq_classes S
     rcases hsP with ⟨a, rfl⟩ -- s = [a]_R
-    have hxa : x ≈ a := hx
-    have hya : y ≈ a := hy
-    exact S.trans hxa (S.symm hya)
+    exact S.trans hx (S.symm hy)
   · intro hRxy
     use equiv_class S x
     constructor
