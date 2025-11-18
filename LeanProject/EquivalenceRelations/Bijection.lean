@@ -113,25 +113,91 @@ def eqrel_partition_bijection (X : Type _) : { R : X → X → Prop // Equivalen
         exact hxt
 }
 
+-- Alternate approach - define F and G functions and prove that the composite maps are identity functions
+
+def F (S : Setoid X) : Partition X :=
+  eq_classes_form_partition_sub S
+
+def G (P : Partition X) : Setoid X :=
+  Setoid.mk (induced_rel P) (induced_rel_is_equivalence P)
+
+-- Almost the same as the right_inv and left_inv proofs above
+theorem FG_eq_id (P : Partition X) : F (G P) = P := by
+  ext s
+  unfold F G
+  constructor
+  · intro hs
+    rcases hs with ⟨a, rfl⟩
+    simp [equiv_class]
+    have ha : a ∈ Set.sUnion P.subsets := by
+        simp [P.union_eq_univ]
+    rcases Set.mem_sUnion.mp ha with ⟨t, htP, hat⟩
+    let R := induced_rel P
+    let S := Setoid.mk R (induced_rel_is_equivalence P)
+    have h_eq : { x | R x a } = t := by
+      ext x
+      constructor
+      · intro hx
+        rw[Set.mem_setOf_eq] at hx
+        rcases hx with ⟨u, huP, hxu, hau⟩
+        have hut : u = t := eq_of_mem P huP htP hau hat
+        simpa [hut] using hxu
+      · intro hxt
+        rw[Set.mem_setOf_eq]
+        use t
+    rw [h_eq]
+    exact htP
+  · intro hsP
+    rcases P.nonempty_subsets s hsP with ⟨a, ha⟩
+    use a
+    simp [equiv_class]
+    -- Need to prove that s = { x | R x a }
+    ext x
+    constructor
+    · intro hxs
+      rw[Set.mem_setOf_eq]
+      use s
+    · intro hRxa
+      rcases hRxa with ⟨t, htP, hxt, hat⟩
+      have hst : s = t := eq_of_mem P hsP htP ha hat
+      rw[hst]
+      exact hxt
 
 
+theorem GF_eq_id (S : Setoid X) : G (F S) = S := by
+  ext x y
+  unfold F G
+  let R : X → X → Prop := S.r
+  let hR : Equivalence R := S.iseqv
+  constructor
+  · intro hxy
+    let P := (eq_classes_form_partition_sub ⟨R, hR⟩ : Partition X)
+    rcases hxy with ⟨s, hsP, ⟨hx, hy⟩⟩
+    have hP_eq : P.subsets = eq_classes S := (eq_classes_form_partition_sub ⟨R, hR⟩).property
+    rw [hP_eq] at hsP -- s ∈ eq_classes S
+    rcases hsP with ⟨a, rfl⟩ -- s = [a]_R
+    have hxa : x ≈ a := hx
+    have hya : y ≈ a := hy
+    exact S.trans hxa (S.symm hya)
+  · intro hRxy
+    use equiv_class S x
+    constructor
+    · -- show equiv_class S x ∈ eq_classes S
+      exact ⟨x, rfl⟩
+    · -- x ∈ equiv_class S x and y ∈ equiv_class S x
+      constructor
+      · exact hR.refl x
+      · change x ≈ y at hRxy
+        change y ≈ x
+        exact S.symm hRxy
 
+-- Final bijection theorem
+def partitions_biject_with_equivalence_relations :
+  Equiv (Setoid X) (Partition X) := by
+  refine
+    { toFun := F,
+      invFun := G,
+      left_inv := GF_eq_id,
+      right_inv := FG_eq_id }
 
-
-
-
-
-
-
-
--- as theorem
-theorem eqrel_bij_partition (X : Type u) :
-  ∃ (f : { R : X → X → Prop // Equivalence R } ≃ Partitions.Partition X), True :=
-⟨{ toFun := λ ⟨R, hR⟩ => sorry,
-    invFun := λ P => sorry,
-    left_inv := sorry,
-    right_inv := sorry
-  }, trivial⟩
-
-def F (S : Setoid X) : Partition X := sorry
 end EqRelBijection
