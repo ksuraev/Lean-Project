@@ -15,17 +15,7 @@ open Partitions
 -- Using the equiv structure to define a bijection between equivalence relations and partitions
 -- Source: https://github.com/leanprover-community/mathlib4/blob/82ce028190bb8ed1a85ff2347d892c72aa439bef/Mathlib/Logic/Equiv/Defs.lean#L62-L73
 
-def toSetoid {α : Type _} (R : { R : α → α → Prop // Equivalence R }) : Setoid α :=
-{ r := R.val,
-  iseqv := R.property }
-
-def equiv_of_partition {α : Type _} (P : Partition α) : α → α → Prop :=
-  induced_rel P
-
-lemma equiv_of_partition_equiv {α : Type _} (P : Partition α) :
-    Equivalence (equiv_of_partition P) :=
-  induced_rel_is_equivalence P
-
+-- Rewrite subset_equal to use in the bijection proof
 lemma eq_of_mem
   {α} (P : Partition α) {s t : Set α}
   (hs : s ∈ P.subsets) (ht : t ∈ P.subsets)
