@@ -104,6 +104,7 @@ def eqrel_partition_bijection (X : Type _) : { R : X → X → Prop // Equivalen
 }
 
 -- Alternate approach - define F and G functions and prove that the composite maps are identity functions
+-- https://github.com/kbuzzard/xena/blob/268b3bab45ba8fbed09b45cbbdc80a3813f73b5e/partitions.lean#L4
 
 def F (S : Setoid X) : Partition X :=
   eq_classes_form_partition_sub S
