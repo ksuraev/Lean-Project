@@ -1,4 +1,3 @@
-import Mathlib
 import LeanProject.EquivalenceClasses.Properties
 import LeanProject.Partitions.Properties
 
