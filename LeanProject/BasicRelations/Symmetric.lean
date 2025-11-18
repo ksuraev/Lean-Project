@@ -1,4 +1,5 @@
-import Mathlib
+import Init.Prelude
+import Mathlib.Tactic
 import Mathlib.Algebra.Ring.Parity
 
 -- Proving that a relation is symmetric

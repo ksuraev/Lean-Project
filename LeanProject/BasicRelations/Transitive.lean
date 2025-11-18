@@ -1,6 +1,8 @@
-import Mathlib
 import Mathlib.Algebra.Group.Even
 import Mathlib.Algebra.Ring.Parity
+import Mathlib.Algebra.Group.Defs
+import Init.Prelude
+import Mathlib.Tactic
 
 -- Proving that a relation is transitive
 namespace ProvingTransitive
