@@ -8,7 +8,7 @@ import LeanProject.EquivalenceClasses.Properties
 
 namespace Partitions
 
-structure Partition (α : Type _) where
+@[ext] structure Partition (α : Type _) where
   subsets : Set (Set α) -- collection of subsets of α
   nonempty_subsets : ∀ s ∈ subsets, s.Nonempty
   disjoint_subsets : ∀ s₁ ∈ subsets, ∀ s₂ ∈ subsets, s₁ ≠ s₂ → Disjoint s₁ s₂
