@@ -106,36 +106,44 @@ def eqrel_partition_bijection (X : Type _) : { R : X → X → Prop // Equivalen
 -- Alternate approach - define F and G functions and prove that the composite maps are identity functions
 -- https://github.com/kbuzzard/xena/blob/268b3bab45ba8fbed09b45cbbdc80a3813f73b5e/partitions.lean#L4
 
+-- Helper lemma to show that a subset in a partition is equal to the equivalence class induced by the partition
+lemma subset_eq_equiv_class {X : Type _} (P : Partition X) (s : Set X) (hs : s ∈ P.subsets)
+  (a : X) (ha : a ∈ s) :
+  s = {x | induced_rel P x a} := by
+  ext x
+  constructor
+  · intro hxs
+    rw[Set.mem_setOf_eq]
+    use s
+  · intro hPxa
+    rcases hPxa with ⟨t, htP, hxt, hat⟩
+    have hst : s = t := eq_of_mem P hs htP ha hat
+    rw[hst]
+    exact hxt
+
+
 def F (S : Setoid X) : Partition X :=
   eq_classes_form_partition_sub S
 
+
 def G (P : Partition X) : Setoid X :=
-  Setoid.mk (induced_rel P) (induced_rel_is_equivalence P)
+  ⟨induced_rel P, induced_rel_is_equivalence P⟩
+
 
 -- Almost the same as the right_inv and left_inv proofs above
 theorem FG_eq_id (P : Partition X) : F (G P) = P := by
   ext s
-  unfold F G
+  dsimp [F, G, eq_classes_form_partition_sub]
   constructor
   · intro hs
     rcases hs with ⟨a, rfl⟩
     simp [equiv_class]
     have ha : a ∈ Set.sUnion P.subsets := by
-        simp [P.union_eq_univ]
+      rw [P.union_eq_univ]
+      exact Set.mem_univ a
     rcases Set.mem_sUnion.mp ha with ⟨t, htP, hat⟩
-    let R := induced_rel P
-    let S := Setoid.mk R (induced_rel_is_equivalence P)
-    have h_eq : { x | R x a } = t := by
-      ext x
-      constructor
-      · intro hx
-        rw[Set.mem_setOf_eq] at hx
-        rcases hx with ⟨u, huP, hxu, hau⟩
-        have hut : u = t := eq_of_mem P huP htP hau hat
-        simpa [hut] using hxu
-      · intro hxt
-        rw[Set.mem_setOf_eq]
-        use t
+    have h_eq : { x | induced_rel P x a } = t := by
+      apply symm (subset_eq_equiv_class P t htP a hat)
     rw [h_eq]
     exact htP
   · intro hsP
