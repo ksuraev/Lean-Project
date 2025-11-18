@@ -1,5 +1,6 @@
-import Mathlib
 import Init.Prelude
+import Mathlib.Tactic
+import Mathlib.Data.Set.Operations
 import Mathlib.Data.Set.Defs
 
 namespace EqClasses_Setoid
