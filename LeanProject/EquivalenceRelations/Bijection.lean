@@ -133,6 +133,23 @@ def partitions_biject_with_equivalence_relations :
       left_inv := GF_eq_id,
       right_inv := FG_eq_id }
 
+-- Prove that a function F : S → P is a bijection if and only if it is both injective and surjective where S is the set of equivalence relations and P is the set of partitions on X
+
+theorem F_injective {X : Type _} : ∀ (S1 S2 : Setoid X), F S1 = F S2 → S1 = S2 := by
+  intros S1 S2 h
+  -- apply G to the equality and use GF_eq_id to simplify
+  have h2 : G (F S1) = G (F S2) := congrArg G h
+  -- G (F S1) = S1 and G (F S2) = S2 by GF_eq_id, so S1 = S2
+  simp [GF_eq_id] at h2
+  exact h2
+
+theorem F_surjective {X : Type _} : ∀ P : Partition X, ∃ S : Setoid X, F S = P := by
+  intro P
+  use G P
+  exact FG_eq_id P
+
+theorem F_bijective {X : Type _} : Function.Bijective (F : Setoid X → Partition X) :=
+  ⟨F_injective, F_surjective⟩
 end EqRelBijection
 
 -- First draft of the bijection
