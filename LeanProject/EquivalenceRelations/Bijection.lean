@@ -135,7 +135,9 @@ def partitions_biject_with_equivalence_relations :
 
 end EqRelBijection
 
+-- First draft of the bijection
 namespace EqRelBijectionDraft
+
 open EqClasses_Setoid
 open InducedRelation
 open Partitions
