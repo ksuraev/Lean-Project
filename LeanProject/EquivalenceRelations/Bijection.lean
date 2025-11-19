@@ -123,7 +123,7 @@ lemma subset_eq_equiv_class {X : Type _} (P : Partition X) (s : Set X) (hs : s �
     rw[hst]
     exact hxt
 
-
+-- Define the functions F and G
 def F (S : Setoid X) : Partition X :=
   eq_classes_form_partition_sub S
 
@@ -137,7 +137,8 @@ theorem FG_eq_id (P : Partition X) : F (G P) = P := by
   ext s
   dsimp [F, G, eq_classes_form_partition_sub]
   constructor
-  · intro hs
+  · -- ⊢ s ∈ eq_classes { r := induced_rel P, iseqv := ⋯ } → s ∈ P.subsets
+    intro hs
     rcases hs with ⟨a, rfl⟩
     simp [equiv_class]
     have ha : a ∈ Set.sUnion P.subsets := by
@@ -148,46 +149,46 @@ theorem FG_eq_id (P : Partition X) : F (G P) = P := by
       apply symm (subset_eq_equiv_class P t htP a hat)
     rw [h_eq]
     exact htP
-  · intro hsP
+  · -- ⊢ s ∈ P.subsets → s ∈ eq_classes { r := induced_rel P, iseqv := ⋯ }
+    intro hsP
     rcases P.nonempty_subsets s hsP with ⟨a, ha⟩
     use a
-    simp [equiv_class]
-    -- Need to prove that s = { x | R x a }
-    ext x
+    simp [equiv_class] -- ⊢ = {x | induced_rel P x a}
+    ext x -- ⊢ x ∈ s ↔ x ∈ {x | induced_rel P x a}
     constructor
-    · intro hxs
-      rw[Set.mem_setOf_eq]
+    · -- ⊢ x ∈ s → x ∈ {x | induced_rel P x a}
+      intro hxs
+      rw [Set.mem_setOf_eq]
       use s
-    · intro hRxa
+    · -- ⊢ x ∈ {x | induced_rel P x a} → x ∈ s
+      intro hRxa
       rcases hRxa with ⟨t, htP, hxt, hat⟩
       have hst : s = t := eq_of_mem P hsP htP ha hat
-      rw[hst]
+      rw [hst]
       exact hxt
 
 
 theorem GF_eq_id (S : Setoid X) : G (F S) = S := by
-  ext x y
-  unfold F G
-  let R : X → X → Prop := S.r
-  let hR : Equivalence R := S.iseqv
+  ext x y -- (G (F S)) x y ↔ S x y
+  dsimp [G, F, induced_rel, eq_classes_form_partition_sub] -- simplify definitions
   constructor
-  · intro hxy
-    let P := (eq_classes_form_partition_sub ⟨R, hR⟩ : Partition X)
-    rcases hxy with ⟨s, hsP, ⟨hx, hy⟩⟩
-    have hP_eq : P.subsets = eq_classes S := (eq_classes_form_partition_sub ⟨R, hR⟩).property
-    rw [hP_eq] at hsP -- s ∈ eq_classes S
-    rcases hsP with ⟨a, rfl⟩ -- s = [a]_R
-    exact S.trans hx (S.symm hy)
-  · intro hRxy
+  · intro hxy -- ⊢ S x y
+    let P := (eq_classes_form_partition_sub S : Partition X)
+    rcases hxy with ⟨s, hsP, ⟨hx, hy⟩⟩ -- hsP : s ∈ eq_classes S, hx : x ∈ s, hy : y ∈ s
+    have hP_eq : eq_classes S = P.subsets := (eq_classes_form_partition_sub S).property
+    rw [hP_eq] at hsP -- s ∈ P.subsets
+    rcases hsP with ⟨a, rfl⟩ -- hx : x ∈ [a]_R, hy : y ∈ [a]_R
+    exact S.trans hx (S.symm hy) -- Show x ≈ y
+  · intro hRxy -- ⊢ ∃ s ∈ eq_classes S, x ∈ s ∧ y ∈ s
     use equiv_class S x
     constructor
-    · -- show equiv_class S x ∈ eq_classes S
+    · -- ⊢ [x]_S ∈ eq_classes S
       exact ⟨x, rfl⟩
-    · -- x ∈ equiv_class S x and y ∈ equiv_class S x
+    · -- ⊢ x ∈ [x]_S ∧ y ∈ [x]_S
       constructor
-      · exact hR.refl x
-      · change x ≈ y at hRxy
-        change y ≈ x
+      · -- x ∈ [x]_S
+        exact S.refl x
+      · -- y ∈ [x]_S
         exact S.symm hRxy
 
 -- Final bijection theorem
