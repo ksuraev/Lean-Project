@@ -12,14 +12,6 @@ open EqClasses_Setoid
 open InducedRelation
 open Partitions
 
--- Rewrite subset_equal to use in the bijection proof
-lemma eq_of_mem
-  {α} (P : Partition α) {s t : Set α}
-  (hs : s ∈ P.subsets) (ht : t ∈ P.subsets)
-  {a : α} (ha_s : a ∈ s) (ha_t : a ∈ t) :
-  s = t := by
-  apply subsets_equal P s t hs ht a ha_s ha_t
-
 -- Define F and G functions and prove that the composite maps are identity functions
 -- https://github.com/kbuzzard/xena/blob/268b3bab45ba8fbed09b45cbbdc80a3813f73b5e/partitions.lean#L4
 
@@ -34,7 +26,8 @@ lemma subset_eq_equiv_class {X : Type _} (P : Partition X) (s : Set X) (hs : s �
     use s
   · intro hPxa
     rcases hPxa with ⟨t, htP, hxt, hat⟩
-    have hst : s = t := eq_of_mem P hs htP ha hat
+    have hst : s = t := by
+        apply subsets_equal P s t hs htP a ha hat
     rw[hst]
     exact hxt
 
@@ -87,7 +80,8 @@ theorem FG_eq_id (P : Partition X) : F (G P) = P := by
       -- there exists t ∈ P.subsets such that x ∈ t and a ∈ t
       rcases hRxa with ⟨t, htP, hxt, hat⟩
       -- show s = t
-      have hst : s = t := eq_of_mem P hsP htP ha hat
+      have hst : s = t := by
+        apply subsets_equal P s t hsP htP a ha hat
       rw [hst] -- Goal: x ∈ t
       exact hxt
 
@@ -136,23 +130,26 @@ def partitions_biject_with_equivalence_relations :
 -- Prove that a function F : S → P is a bijection if and only if it is both injective and surjective where S is the set of equivalence relations and P is the set of partitions on X
 
 theorem F_injective {X : Type _} : ∀ (S1 S2 : Setoid X), F S1 = F S2 → S1 = S2 := by
-  intros S1 S2 h
+  intros S1 S2 hF
   -- apply G to the equality and use GF_eq_id to simplify
-  have h2 : G (F S1) = G (F S2) := congrArg G h
+  have hG : G (F S1) = G (F S2) := congrArg G hF
   -- G (F S1) = S1 and G (F S2) = S2 by GF_eq_id, so S1 = S2
-  simp [GF_eq_id] at h2
-  exact h2
+  simp [GF_eq_id] at hG
+  exact hG
 
 theorem F_surjective {X : Type _} : ∀ P : Partition X, ∃ S : Setoid X, F S = P := by
+  -- Assume P is a partition
   intro P
+  -- Take S = G P
   use G P
+  -- Then F (G P) = P by FG_eq_id
   exact FG_eq_id P
 
 theorem F_bijective {X : Type _} : Function.Bijective (F : Setoid X → Partition X) :=
   ⟨F_injective, F_surjective⟩
 end EqRelBijection
 
--- First draft of the bijection
+-- First draft of the bijection and notes on subtypes
 namespace EqRelBijectionDraft
 
 open EqClasses_Setoid
