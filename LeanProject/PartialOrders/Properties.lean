@@ -45,7 +45,7 @@ def maximal {S : Type _} [PartialOrder S] (z : S) : Prop := ∀ {a : S}, z ≤ a
 
 def minimal {S : Type _} [PartialOrder S] (z : S) : Prop  := ∀ {a : S}, a ≤ z → a = z
 
-lemma exists_minimal_in_fin_nonempty
+lemma exists_minimal_classical
     (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α] :
   ∃ m : α, minimal m := by
   classical
@@ -144,12 +144,12 @@ lemma exists_minimal_in_fin_nonempty
   rfl
 
 lemma exists_minimal_constructive
-    (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α][DecidableRel (fun (x y : α) => x ≤ y)] -- Allows computation of 'if x < y'
-    [DecidableEq α] -- Allows computation of 'if x == y'
-    :
-  ∃ m : α, minimal m := by
+    (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α]
+    [DecidableRel (fun (x y : α) => x ≤ y)] -- Allows computation of `if x < y`
+    [DecidableEq α] -- Allows computation of `if x == y`
+    : ∃ m : α, minimal m := by
   let S : Finset α := Finset.univ
-  -- Assume m is minimal in S
+  -- Define what it means to be a minimal element in S
   let minimal_in (S : Finset α) (m : α) := m ∈ S ∧ ∀ y ∈ S, y ≤ m → y = m
   -- Claim that every finite nonempty set S has a minimal element m
   have claim : ∀ S : Finset α, S.Nonempty → ∃ m, minimal_in S m := by
