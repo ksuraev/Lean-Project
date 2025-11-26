@@ -49,12 +49,6 @@ lemma exists_minimal_classical
     (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α] :
   ∃ m : α, minimal m := by
   classical
-  -- Set n to be the number of elements (card)
-  let n := Fintype.card α
-  -- Set condition that n ≥ 1
-  have n_pos : 1 ≤ n := by
-    have : 0 < n := Fintype.card_pos_iff.mpr (inferInstance : Nonempty α)
-    exact Nat.succ_le_of_lt this
   -- Define P(k) - inductive hypothesis
   let P := fun (k : ℕ) =>
     ∀ {β : Type _} [Fintype β] [PartialOrder β] [Nonempty β],
@@ -88,7 +82,7 @@ lemma exists_minimal_classical
       use x
       intro y hy -- Assume y ≤ x
       -- If y < x, we get a contradiction
-      -- We want to show that x is indeed minimal, i.e. for any y ≤ x, y = x
+      -- We want to show that x is minimal, i.e. for any y ≤ x, y = x
       by_contra h_neq -- Assume y ≠ x
       -- Derive y < x from x being minimal and y ≠ x
       have y_lt_x : y < x := lt_of_le_of_ne hy h_neq
@@ -109,39 +103,24 @@ lemma exists_minimal_classical
     · -- Case 2: m is the minimal element in the whole set
       use m
       intro y hy -- Assume y ≤ m
-      -- Show y ≤ m → y = m
-      -- If y = x (element we removed) and not strictly less than m then x = m
-      if h_eq : y = x then
-        rw [h_eq] at hy ⊢
+      rcases eq_or_ne y x with rfl | h_ne
+      · -- y = x case: If y = x (element we removed) and not strictly less than m then x = m
         exact eq_of_le_of_not_lt hy m_not_min
-      -- Otherwise, y must be in the subset and y = m
-      else
-        -- A subtype is a structure requiring two things - the value and the proof hence the ⟨ ... , ... ⟩
-        let y_sub : β_sub := ⟨y, h_eq⟩ -- A value of y and proof that y ≠ a
-        have : y_sub = ⟨m, hm_ne⟩ := hm_min hy -- A proof that this equality holds because y ≤ m and m is minimal
-        rw [Subtype.ext_iff] at this
-        simp at this
-        change y = m at this
-        rw [this]
-  -- Prove that P(n) holds for all n = k by induction
-  have P_holds : ∀ k, 1 ≤ k → P k := by
-    intro k
-    induction k with
-    | zero =>
-      intro one_le_zero
-      linarith -- k cannot be zero so we 'ignore' this by linarith
-    | succ k' ih' =>
-      intro hk_pos'
-      match k' with
-      | 0 =>
-        simp
-        apply base
-      | (n + 1) =>
-        apply step (n + 1)
-        · linarith
-        · apply ih'; linarith
-  apply P_holds n n_pos
-  rfl
+      · -- y ≠ x case: y must be in the subset and y = m
+        have h_sub_eq : (⟨y, h_ne⟩ : β_sub) = ⟨m, hm_ne⟩ := hm_min (Subtype.mk_le_mk.mpr hy)
+        rw [Subtype.ext_iff] at h_sub_eq
+        exact h_sub_eq
+  -- Prove P holds for n
+  -- Set n to be the number of elements (card)
+  let n := Fintype.card α
+  -- Set condition that n ≥ 1
+  have n_pos : 1 ≤ n := by
+    have : 0 < n := Fintype.card_pos_iff.mpr (inferInstance : Nonempty α)
+    exact Nat.succ_le_of_lt this
+  have P_n : P n := Nat.le_induction (m := 1) (P := fun k _ => P k) base step n n_pos
+
+  -- P_n needs the proof that 'card α = n', which is true by definition (rfl)
+  exact P_n rfl
 
 lemma exists_minimal_constructive
     (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α]
