@@ -64,7 +64,7 @@ lemma exists_minimal_classical
   -- Inductive step: For some k : ℕ where k ≥ 1, P(k) → P(k + 1)
   have step : ∀ (k : ℕ), 1 ≤ k → P k → P (k + 1) := by
     intros k hk_pos ih β _ _ _ hcard
-    -- Proof that `x` exists but is erased
+    -- Choose arbitrary x from β
     let x := Classical.choice (inferInstance : Nonempty β)
     -- Define subtype of remaining elements not equal to `x`
     let β_sub := { y : β // y ≠ x }
@@ -77,20 +77,19 @@ lemma exists_minimal_classical
     -- Deconstruct the inductive hypothesis and cardinality of subset
     -- We are saying we have some m : β such that m ≠ x and m is a minimal element
     rcases ih hcard_sub with ⟨⟨m, hm_ne⟩, hm_min⟩
-    by_cases m_not_min : x < m
+    by_cases hxm : x < m
     · -- Case 1: x < m. We claim 'x' is minimal in the whole set.
       use x
       intro y hy -- Assume y ≤ x
-      -- If y < x, we get a contradiction
       -- We want to show that x is minimal, i.e. for any y ≤ x, y = x
       by_contra h_neq -- Assume y ≠ x
-      -- Derive y < x from x being minimal and y ≠ x
+      -- Derive y < x from y ≤ x and y ≠ x
       have y_lt_x : y < x := lt_of_le_of_ne hy h_neq
-      -- Derive y < m by x being minimal and y < x
-      have y_lt_m : y < m := lt_trans y_lt_x m_not_min
-      -- Since we have assumed there is a minimal y then y must be in the subtype/subset β_sub
+      -- Derive y < m from y < x and x < m
+      have y_lt_m : y < m := lt_trans y_lt_x hxm
+      -- Since we have assumed there is a minimal y then y must be in β_sub
       let y_sub : β_sub := ⟨y, h_neq⟩
-      -- But we said m is a minimal element with rcases of β_sub
+      -- But m is a minimal element with rcases of β_sub
       have y_eq_m : y_sub = ⟨m, hm_ne⟩ := hm_min (le_of_lt y_lt_m)
       -- Simplify subtypes and constructors to get y = m
       rw [Subtype.ext_iff] at y_eq_m
@@ -98,14 +97,14 @@ lemma exists_minimal_classical
       change y = m at y_eq_m
       -- Rewrite y < m with y = m to get m < m
       rw [y_eq_m] at y_lt_m
-      -- Use reflexivity to prove m < m → False
+      -- m < m closes false goal
       exact lt_irrefl m y_lt_m
     · -- Case 2: m is the minimal element in the whole set
       use m
       intro y hy -- Assume y ≤ m
       rcases eq_or_ne y x with rfl | h_ne
       · -- y = x case: If y = x (element we removed) and not strictly less than m then x = m
-        exact eq_of_le_of_not_lt hy m_not_min
+        exact eq_of_le_of_not_lt hy hxm
       · -- y ≠ x case: y must be in the subset and y = m
         have h_sub_eq : (⟨y, h_ne⟩ : β_sub) = ⟨m, hm_ne⟩ := hm_min (Subtype.mk_le_mk.mpr hy)
         rw [Subtype.ext_iff] at h_sub_eq
@@ -118,7 +117,6 @@ lemma exists_minimal_classical
     have : 0 < n := Fintype.card_pos_iff.mpr (inferInstance : Nonempty α)
     exact Nat.succ_le_of_lt this
   have P_n : P n := Nat.le_induction (m := 1) (P := fun k _ => P k) base step n n_pos
-
   -- P_n needs the proof that 'card α = n', which is true by definition (rfl)
   exact P_n rfl
 
