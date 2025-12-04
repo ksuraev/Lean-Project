@@ -19,4 +19,10 @@ end Greatest
 namespace Least
 -- Define least element 'x'
 def least {S : Type _} [PartialOrder S] (x : S) : Prop := ∀ {y : S}, x ≤ y
+
+theorem least_is_unique  (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α] [DecidableRel (fun (x y : α) => x ≤ y)] [DecidableEq α] : ∀ x z : α, least x ∧ least z → x = z := by
+  intro x z hxz
+  rcases hxz with ⟨hx, hz⟩
+  exact le_antisymm hx hz
+
 end Least
