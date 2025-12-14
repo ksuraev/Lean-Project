@@ -45,11 +45,10 @@ def maximal {S : Type _} [PartialOrder S] (z : S) : Prop := ∀ {a : S}, z ≤ a
 
 def minimal {S : Type _} [PartialOrder S] (z : S) : Prop  := ∀ {a : S}, a ≤ z → a = z
 
-lemma exists_minimal_classical
-    (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α] :
-  ∃ m : α, minimal m := by
+lemma exists_minimal_classical (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α]
+  : ∃ m : α, minimal m := by
   classical
-  -- Define P(k) - inductive hypothesis
+  -- Define P(k)
   let P := fun (k : ℕ) =>
     ∀ {β : Type _} [Fintype β] [PartialOrder β] [Nonempty β],
       Fintype.card β = k → ∃ m : β, minimal m
@@ -61,14 +60,14 @@ lemma exists_minimal_classical
     use x
     intro y hy
     apply hx
-  -- Inductive step: For some k : ℕ where k ≥ 1, P(k) → P(k + 1)
-  have step : ∀ (k : ℕ), 1 ≤ k → P k → P (k + 1) := by
+  -- Inductive step: For all k : ℕ where k ≥ 1, P(k) → P(k + 1)
+  have step : ∀ (k : ℕ), k ≥ 1 → P k → P (k + 1) := by
     intros k hk_pos ih β _ _ _ hcard
     -- Choose arbitrary x from β
     let x := Classical.choice (inferInstance : Nonempty β)
     -- Define subtype of remaining elements not equal to `x`
     let β_sub := { y : β // y ≠ x }
-    -- Define the cardinality of the remaining elements to be k
+    -- Cardinality of remaining elements is k
     have hcard_sub : Fintype.card β_sub = k := by
       simp [β_sub, hcard]
     -- Show that the remaining set is nonempty
@@ -78,7 +77,7 @@ lemma exists_minimal_classical
     -- We are saying we have some m : β such that m ≠ x and m is a minimal element
     rcases ih hcard_sub with ⟨⟨m, hm_ne⟩, hm_min⟩
     by_cases hxm : x < m
-    · -- Case 1: x < m. We claim 'x' is minimal in the whole set.
+    · -- Case 1: claim 'x' is minimal in the whole set.
       use x
       intro y hy -- Assume y ≤ x
       -- We want to show that x is minimal, i.e. for any y ≤ x, y = x
@@ -103,10 +102,11 @@ lemma exists_minimal_classical
       use m
       intro y hy -- Assume y ≤ m
       rcases eq_or_ne y x with rfl | h_ne
-      · -- y = x case: If y = x (element we removed) and not strictly less than m then x = m
+      · -- y = x subcase: If y = x (element we removed) and not strictly less than m then x = m
         exact eq_of_le_of_not_lt hy hxm
-      · -- y ≠ x case: y must be in the subset and y = m
-        have h_sub_eq : (⟨y, h_ne⟩ : β_sub) = ⟨m, hm_ne⟩ := hm_min (Subtype.mk_le_mk.mpr hy)
+      · -- y ≠ x subcase: y must be in the subset and y = m
+        have h_sub_eq : (⟨y, h_ne⟩ : β_sub) = ⟨m, hm_ne⟩
+          := hm_min (Subtype.mk_le_mk.mpr hy)
         rw [Subtype.ext_iff] at h_sub_eq
         exact h_sub_eq
   -- Prove P holds for n
@@ -198,10 +198,6 @@ lemma exists_minimal_constructive
 theorem exists_maximal_classical (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α] :
   ∃ m : α, maximal m := by
   classical
-  let n := Fintype.card α
-  have n_pos : 1 ≤ n := by
-    have : 0 < n := Fintype.card_pos_iff.mpr (inferInstance : Nonempty α)
-    exact Nat.succ_le_of_lt this
   let P := fun (k : ℕ) =>
     ∀ {β : Type _} [Fintype β] [PartialOrder β] [Nonempty β],
       Fintype.card β = k → ∃ m : β, maximal m
@@ -254,6 +250,10 @@ theorem exists_maximal_classical (α : Type _) [Fintype α] [PartialOrder α] [N
         change y = m at this
         rw[this]
   -- Induction on n
+  let n := Fintype.card α
+  have n_pos : 1 ≤ n := by
+    have : 0 < n := Fintype.card_pos_iff.mpr (inferInstance : Nonempty α)
+    exact Nat.succ_le_of_lt this
   have P_holds : ∀ k, 1 ≤ k → P k := by
     intro k
     induction k with
