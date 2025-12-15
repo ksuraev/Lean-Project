@@ -4,6 +4,7 @@ import Mathlib.Data.Fintype.Defs
 namespace Greatest
 
 -- Define greatest element 'x'
+-- https://www.uv.es/coslloen/Lean4/Leancap11.html
 def greatest {S : Type _} [PartialOrder S] (x : S) : Prop := ∀ {y : S}, y ≤ x
 
 -- Show uniqueness of greatest element
