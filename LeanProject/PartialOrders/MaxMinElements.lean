@@ -1,11 +1,5 @@
 import Mathlib.Order.Defs.PartialOrder
-import Mathlib.Data.Set.Defs
-import Mathlib.Order.RelClasses
-import Mathlib.Data.Set.Basic
-import Mathlib.Data.Finite.Defs
-import Mathlib.Data.Fintype.Defs
 import Mathlib.Order.Preorder.Finite
-import Mathlib.Data.Finset.Max
 import Mathlib.Tactic.Linarith
 
 -- Simple example mirroring Example 4.7 from report
@@ -271,18 +265,4 @@ theorem exists_maximal_classical (α : Type _) [Fintype α] [PartialOrder α] [N
   apply P_holds n n_pos
   rfl
 
-
-
-
-
 end MaxMinElements
-
-namespace LeastGreatestElements
--- Define least and greatest
--- https://www.uv.es/coslloen/Lean4/Leancap11.html
-def least {A : Type} (R : A → A → Prop) (z : A) : Prop := ∀ {a : A}, R z a
-
-def greatest {A : Type} (R : A → A → Prop) (z : A) : Prop := ∀ {a : A}, R a z
-
-
-end LeastGreatestElements
