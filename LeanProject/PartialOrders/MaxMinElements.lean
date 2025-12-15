@@ -248,21 +248,7 @@ theorem exists_maximal_classical (α : Type _) [Fintype α] [PartialOrder α] [N
   have n_pos : 1 ≤ n := by
     have : 0 < n := Fintype.card_pos_iff.mpr (inferInstance : Nonempty α)
     exact Nat.succ_le_of_lt this
-  have P_holds : ∀ k, 1 ≤ k → P k := by
-    intro k
-    induction k with
-    | zero =>
-      intro _
-      linarith
-    | succ k' ih' =>
-      intro hk_pos'
-      match k' with
-      | 0 => simp; apply base
-      | (n + 1) =>
-        apply step (n + 1)
-        · simp
-        · apply ih'; simp
-  apply P_holds n n_pos
-  rfl
+  have P_n : P n := Nat.le_induction (m := 1) (P := fun k _ => P k) base step n n_pos
+  exact P_n rfl
 
 end MaxMinElements
