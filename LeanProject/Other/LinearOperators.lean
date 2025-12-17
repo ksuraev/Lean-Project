@@ -71,7 +71,8 @@ end LinearOperators
 namespace OrthogonalComplements
 open LinearOperators
 
-variable {V W : Type _} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [NormedAddCommGroup W] [InnerProductSpace ℝ W] [FiniteDimensional ℝ V]
+variable {V W : Type _} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [NormedAddCommGroup W] [InnerProductSpace ℝ W]
+
 
 def orthogonal_complement
 (S : Subspace ℝ V) : Subspace ℝ V where
@@ -94,7 +95,7 @@ def orthogonal_complement
 -- Sᗮᗮ ⊆ S: show v = w - u is orthogonal to every basis vector  bᵢ to then show that v ∈ Sᗮ. Show w ∈ Sᗮᗮ means w is orthogonal to every vector v and derive subset inclusion
 -- S ⊆ Sᗮᗮ: assume x ∈ S, then x is orthogonal to every vector in Sᗮ but it is also in the orthogonal complement of Sᗮ so x ∈ Sᗮᗮ
 
-lemma double_orth_subset_self (S : Submodule ℝ V) (w : V)
+lemma double_orth_subset_self (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V)
   (h : w ∈ Sᗮᗮ) : w ∈ S := by
   let b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S :=
     stdOrthonormalBasis ℝ S
@@ -135,8 +136,18 @@ lemma double_orth_subset_self (S : Submodule ℝ V) (w : V)
   rw[h_v_zero]
   exact u.2
 
+lemma subset_double_orth (S : Submodule ℝ V) (w : V) (h : w ∈ S) : w ∈ Sᗮᗮ := by
+  intro s hs
+  rw[real_inner_comm]
+  rw[Submodule.inner_right_of_mem_orthogonal h hs]
 
-
+theorem double_orth_eq_self [FiniteDimensional ℝ V] (S : Submodule ℝ V) : Sᗮᗮ = S := by
+  apply le_antisymm
+  -- Sᗮᗮ ⊆ S
+  · intro w hw
+    exact double_orth_subset_self S w hw
+  -- S ⊆ Sᗮᗮ
+  · exact subset_double_orth S
 
 
 
