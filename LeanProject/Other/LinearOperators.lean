@@ -95,59 +95,104 @@ def orthogonal_complement
 -- Sᗮᗮ ⊆ S: show v = w - u is orthogonal to every basis vector  bᵢ to then show that v ∈ Sᗮ. Show w ∈ Sᗮᗮ means w is orthogonal to every vector v and derive subset inclusion
 -- S ⊆ Sᗮᗮ: assume x ∈ S, then x is orthogonal to every vector in Sᗮ but it is also in the orthogonal complement of Sᗮ so x ∈ Sᗮᗮ
 
-lemma double_orth_subset_self (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V)
-  (h : w ∈ Sᗮᗮ) : w ∈ S := by
-  let b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S :=
-    stdOrthonormalBasis ℝ S
-  let u : S := ∑ i, inner ℝ w (b i) • (b i)
-  let v : V := w - u
-  -- Show v ⊥ bᵢ, ⟨v, bᵢ⟩ = 0
-  have h_v_orth_to_basis : ∀ j, inner ℝ v (b j) = 0 := by
-    intro j
-    rw [inner_sub_left]
-    dsimp[u]
-    simp_rw [← Submodule.coe_inner]
+noncomputable def proj (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V) (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S) : V :=
+  ∑ i, inner ℝ w (b i) • (b i : V)
+
+lemma proj_mem_subspace (S : Submodule ℝ V) (w : V) [FiniteDimensional ℝ V] (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S) : proj S w b ∈ S := by
+  dsimp[proj]
+  apply Submodule.sum_mem S
+  intro i hi
+  apply Submodule.smul_mem
+  exact (b i).2
+
+lemma sub_proj_orth_basis (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V) (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S) : ∀ i, inner ℝ (w - proj S w b) (b i) = 0 := by
+  intro i
+  rw[inner_sub_left]
+  have h : inner ℝ (proj S w b) (b i) =
+           inner ℝ w (b i) := by
+    dsimp[proj]
     rw[sum_inner]
-    simp_rw [real_inner_smul_left, b.inner_eq_ite]
+    simp_rw [real_inner_smul_left, ← Submodule.coe_inner, b.inner_eq_ite]
     simp
+  rw[h, sub_self]
+
+lemma sub_proj_mem_orth (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V) (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S) : w - proj S w b ∈ Sᗮ := by
+  intro x hx
+  let x' : S := ⟨x, hx⟩
+  change inner ℝ (x' : V) (w - proj S w b) = 0
+  rw[← b.toBasis.sum_repr x']
+  simp only [Submodule.coe_sum, Submodule.coe_smul]
+  rw [sum_inner]
+  simp_rw [real_inner_smul_left]
+  simp_rw [real_inner_comm]
+  simp [sub_proj_orth_basis S w b]
+
+
+lemma double_orth_subset_self (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V) (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S)
+  (h : w ∈ Sᗮᗮ) : w ∈ S := by
+  let u : V := proj S w b
+  let v : V := w - u
+  have hu : u ∈ S := proj_mem_subspace S w b
+  -- Show v ⊥ bᵢ, ⟨v, bᵢ⟩ = 0
+  have h_v_orth_to_basis : ∀ j, inner ℝ v (b j) = 0 := sub_proj_orth_basis S w b
   -- Show v ∈ Sᗮ, ⟨v, x : S⟩ = 0
-  have h_v_in_orth_S : v ∈ Sᗮ := by
-    intro x hx
-    let x_sub : S := ⟨x, hx⟩
-    change inner ℝ (x_sub : V) v = 0
-    rw [real_inner_comm]
-    nth_rw 1 [← b.toBasis.sum_repr x_sub]
-    simp only [Submodule.coe_sum, Submodule.coe_smul]
-    rw[inner_sum]
-    simp_rw [inner_smul_right]
-    simp [h_v_orth_to_basis]
-  have hvw : inner ℝ v w = 0 := by
-    rw [Submodule.inner_right_of_mem_orthogonal h_v_in_orth_S h]
-  have hvu : inner ℝ v u = 0 := by
-    rw[real_inner_comm]
-    exact h_v_in_orth_S (u : V) u.2
-  have hvv : inner ℝ v v = 0 := by
-    change inner ℝ (w - u) v = 0
-    rw[inner_sub_left]
-    rw[real_inner_comm] at hvw hvu
-    rw[hvw, hvu, sub_zero]
-  have h_v_zero : v = 0 := inner_self_eq_zero.mp hvv
-  rw[sub_eq_zero] at h_v_zero
+  have h_v_in_orth_S : v ∈ Sᗮ := sub_proj_mem_orth S w b
+  have h_v_zero : v = 0 := by
+    have h_v_in_orth_orth : v ∈ Sᗮᗮ := by
+      apply Submodule.sub_mem Sᗮᗮ h
+      exact Submodule.le_orthogonal_orthogonal S hu
+    apply inner_self_eq_zero.mp (h_v_in_orth_orth v h_v_in_orth_S)
+  -- Show w ∈ S
+  rw[sub_eq_zero] at h_v_zero -- w = u
   rw[h_v_zero]
-  exact u.2
+  exact hu
 
 lemma subset_double_orth (S : Submodule ℝ V) (w : V) (h : w ∈ S) : w ∈ Sᗮᗮ := by
   intro s hs
   rw[real_inner_comm]
   rw[Submodule.inner_right_of_mem_orthogonal h hs]
 
-theorem double_orth_eq_self [FiniteDimensional ℝ V] (S : Submodule ℝ V) : Sᗮᗮ = S := by
+theorem double_orth_eq_self [FiniteDimensional ℝ V] (S : Submodule ℝ V) (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S) : Sᗮᗮ = S := by
   apply le_antisymm
   -- Sᗮᗮ ⊆ S
   · intro w hw
-    exact double_orth_subset_self S w hw
+    exact double_orth_subset_self S w b hw
   -- S ⊆ Sᗮᗮ
   · exact subset_double_orth S
+
+lemma decomp_exists (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V) (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S) :
+  ∃ (v : Sᗮ), w = proj S w b + v := by
+  let v_vec := w - proj S w b
+  have hv : v_vec ∈ Sᗮ := sub_proj_mem_orth S w b
+  use ⟨v_vec, hv⟩
+  simp [v_vec]
+
+-- ⊔ represents + but can use + for submodules
+-- ⊤ represents whole space V
+-- ⊓ represents ∪
+-- ⊥ represents zero subspace {0}
+theorem direct_sum (U W : Submodule ℝ V) (h : IsCompl U W) :
+    U + W = ⊤ ∧ U ⊓ W = ⊥ := by
+  exact ⟨h.sup_eq_top, h.inf_eq_bot⟩
+
+-- IsCompl splits into Disjoint and Codisjoint
+theorem unique_direct_sum (S : Submodule ℝ V) [FiniteDimensional ℝ V] :
+  IsCompl S Sᗮ := by
+  constructor
+  case disjoint =>
+    -- Any x in S and Sᗮ, x = 0
+    rw[Submodule.disjoint_def]
+    intro x hx_S hx_orth
+    have h_inner_zero : inner ℝ x x = 0 := hx_orth x hx_S
+    exact inner_self_eq_zero.mp h_inner_zero
+  case codisjoint =>
+    rw[codisjoint_iff, eq_top_iff] -- V ≤ S + Sᗮ
+    intro w _
+    rw [Submodule.mem_sup]
+    refine ⟨proj S w, proj_mem_subspace S w, w - proj S w, sub_proj_mem_orth S w, ?_⟩
+    simp
+
+
 
 
 
