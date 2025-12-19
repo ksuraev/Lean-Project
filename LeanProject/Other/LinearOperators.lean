@@ -108,8 +108,7 @@ lemma proj_mem_subspace (S : Submodule ℝ V) (w : V) [FiniteDimensional ℝ V] 
 lemma sub_proj_orth_basis (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V) (b : OrthonormalBasis (Fin (Module.finrank ℝ S)) ℝ S := stdOrthonormalBasis ℝ S) : ∀ i, inner ℝ (w - proj S w b) (b i) = 0 := by
   intro i
   rw[inner_sub_left]
-  have h : inner ℝ (proj S w b) (b i) =
-           inner ℝ w (b i) := by
+  have h : inner ℝ (proj S w b) (b i) = inner ℝ w (b i) := by
     dsimp[proj]
     rw[sum_inner]
     simp_rw [real_inner_smul_left, ← Submodule.coe_inner, b.inner_eq_ite]
@@ -123,8 +122,7 @@ lemma sub_proj_mem_orth (S : Submodule ℝ V) [FiniteDimensional ℝ V] (w : V) 
   rw[← b.toBasis.sum_repr x']
   simp only [Submodule.coe_sum, Submodule.coe_smul]
   rw [sum_inner]
-  simp_rw [real_inner_smul_left]
-  simp_rw [real_inner_comm]
+  simp_rw [real_inner_smul_left, real_inner_comm]
   simp [sub_proj_orth_basis S w b]
 
 
@@ -191,11 +189,49 @@ theorem unique_direct_sum (S : Submodule ℝ V) [FiniteDimensional ℝ V] :
     rw [Submodule.mem_sup]
     refine ⟨proj S w, proj_mem_subspace S w, w - proj S w, sub_proj_mem_orth S w, ?_⟩
     simp
-
-
-
-
-
-
-
 end OrthogonalComplements
+
+
+namespace Convex
+
+variable {𝕂 α : Type*} [Semiring 𝕂] [PartialOrder 𝕂] [AddCommMonoid α] [SMul 𝕂 α]
+
+theorem inter_is_convex (S L : Set α) (hS : Convex 𝕂 S) (hL : Convex 𝕂 L) : Convex 𝕂 (S ∩ L) := by
+  intro x hx y hy a b ha hb hab
+  obtain ⟨hxS, hxL⟩ := hx
+  obtain ⟨hyS, hyL⟩ := hy
+  constructor
+  · exact hS hxS hyS ha hb hab
+  · exact hL hxL hyL ha hb hab
+
+variable {𝕂 α : Type*} [PartialOrder 𝕂] [Semiring 𝕂] [AddCommMonoid α] [Module 𝕂 α] [IsOrderedRing 𝕂]
+
+-- Show that a set is convex if and only if its intersection with any line is convex
+theorem convex_iff_convex_inter_with_lines (S : Set α) :
+  Convex 𝕂 S ↔ ∀ (x y : α), Convex 𝕂 (S ∩ segment 𝕂 x y) := by
+  constructor
+  · intro hS x y
+    apply Convex.inter
+    exact hS
+    apply convex_segment
+  · intro h x hx y hy a b ha hb hab
+    have h_inter := h x y
+    have hx_in_inter : x ∈ S ∩ segment 𝕂 x y := by
+      constructor
+      · exact hx
+      · exact left_mem_segment 𝕂 x y
+    have hy_in_inter : y ∈ S ∩ segment 𝕂 x y := by
+      constructor
+      · exact hy
+      · exact right_mem_segment 𝕂 x y
+    have h_result := h x y hx_in_inter hy_in_inter ha hb hab
+    exact h_result.1
+
+
+
+
+
+
+
+
+end Convex
