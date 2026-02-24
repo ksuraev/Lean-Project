@@ -116,7 +116,7 @@ lemma exists_minimal_classical (α : Type _) [Fintype α] [PartialOrder α] [Non
 
 lemma exists_minimal_constructive
     (α : Type _) [Fintype α] [PartialOrder α] [Nonempty α]
-    [DecidableRel (fun (x y : α) => x ≤ y)] -- Allows computation of `if x < y`
+    [DecidableRel (· ≤ · : α → α → Prop)] -- Allows computation of `if x < y`
     [DecidableEq α] -- Allows computation of `if x == y`
     : ∃ m : α, minimal m := by
   let S : Finset α := Finset.univ
@@ -161,11 +161,11 @@ lemma exists_minimal_constructive
             | inl y_eq_a => exact y_eq_a
             | inr y_in_s =>
               -- we have a ≤ m and y ≤ a so y ≤ m
-              have y_le_m : y ≤ m := le_trans y_le_a a_le_m
-              -- But m is minimal so y = m
-              have y_eq_m : y = m := hm_min_s y y_in_s y_le_m
-              rw[y_eq_m] at ⊢ y_le_a
-              exact le_antisymm y_le_a a_le_m
+            have y_le_m : y ≤ m := le_trans y_le_a a_le_m
+            -- But m is minimal so y = m
+            have y_eq_m : y = m := hm_min_s y y_in_s y_le_m
+            rw[y_eq_m] at y_le_a ⊢
+            exact le_antisymm y_le_a a_le_m
         else
           -- Subcase 2: claim ¬a ≤ m, so m is minimal
           use m
@@ -202,7 +202,7 @@ theorem exists_maximal_classical (α : Type _) [Fintype α] [PartialOrder α] [N
     rcases (Fintype.card_eq_one_iff.mp hcard) with ⟨x, hx⟩
     use x
     intro y hy
-    apply hx
+    exact hx y
   have step : ∀ (k : ℕ), 1 ≤ k → P k → P (k + 1) := by
     intros k hk_pos ih β _ _ _ hcard
     let x := Classical.choice (inferInstance : Nonempty β)
