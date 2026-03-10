@@ -188,4 +188,14 @@ theorem unique_direct_sum (S : Submodule ℝ V) [FiniteDimensional ℝ V] :
     rw [Submodule.mem_sup]
     refine ⟨proj S w, proj_mem_subspace S w, w - proj S w, sub_proj_mem_orth S w, ?_⟩
     simp
+
+/-- Proof from Mathlib orthogonal.lean `orthogonal` reverses the `≤` ordering of two
+subspaces. -/
+-- theorem orthogonal_le {K₁ K₂ : Submodule 𝕜 E} (h : K₁ ≤ K₂) : K₂ᗮ ≤ K₁ᗮ :=
+--   (orthogonal_gc 𝕜 E).monotone_l h
+lemma orth_le [FiniteDimensional ℝ V] (A B : Submodule ℝ V) (h : A ≤ B) : Bᗮ ≤ Aᗮ := by
+  exact Submodule.orthogonal_le h
+
+
+
 end OrthogonalComplements
