@@ -40,7 +40,6 @@ def G (P : Partition X) : Setoid X :=
   ⟨induced_rel P, induced_rel_is_equivalence P⟩
 
 
--- Almost the same as the right_inv and left_inv proofs above
 theorem FG_eq_id (P : Partition X) : F (G P) = P := by
   ext s -- s ∈ (F (G P)).subsets ↔ s ∈ P.subsets
   dsimp [F, G, eq_classes_form_partition_sub]
@@ -149,7 +148,7 @@ theorem F_bijective {X : Type _} : Function.Bijective (F : Setoid X → Partitio
   ⟨F_injective, F_surjective⟩
 end EqRelBijection
 
--- First draft of the bijection and notes on subtypes
+-- Extra - first draft of the bijection and notes on subtypes
 namespace EqRelBijectionDraft
 
 open EqClasses_Setoid
